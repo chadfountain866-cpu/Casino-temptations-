@@ -1,0 +1,143 @@
+#import secrets
+import os
+from pathlib import Path
+from IPython.display import display, HTML
+
+# ---------- Global Tokens ----------
+# luceferian token
+if "luceferian" not in globals():
+    globals()["luceferian"] = secrets.token_urlsafe(16)
+
+# digital_key token
+if "digital_key" not in globals():
+    globals()["digital_key"] = secrets.token_urlsafe(16)
+
+# Optional: Save luceferian to Drive for persistence
+DRIVE_SAVE_PATH = "/content/drive/MyDrive/Luceferian"
+DRIVE_FILENAME = "luceferian_token.txt"
+def _save_luceferian():
+    try:
+        os.makedirs(DRIVE_SAVE_PATH, exist_ok=True)
+        with open(os.path.join(DRIVE_SAVE_PATH, DRIVE_FILENAME), "w") as f:
+            f.write(globals()["luceferian"])
+    except Exception:
+        pass
+_save_luceferian()
+
+# ---------- Python callbacks for Regenerate ----------
+try:
+    from google.colab import output
+
+    def regenerate_luceferian():
+        new = secrets.token_urlsafe(16)
+        globals()["luceferian"] = new
+        _save_luceferian()
+        return new
+
+    def regenerate_digital_key():
+        new = secrets.token_urlsafe(16)
+        globals()["digital_key"] = new
+        return new
+
+    output.register_callback('luceferian.regenerate_token', regenerate_luceferian)
+    output.register_callback('digital_key.regenerate_token', regenerate_digital_key)
+except Exception:
+    pass
+
+# ---------- Build HTML/JS Display ----------
+luceferian_val = globals()["luceferian"]
+digital_key_val = globals()["digital_key"]
+
+html = f"""
+<style>
+  .billboard {{
+    width: 100%;
+    max-width: 1100px;
+    margin: 18px auto;
+    background: linear-gradient(180deg, #071126 0%, #0d1b2a 100%);
+    color: white;
+    border-radius: 12px;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.6);
+    padding: 24px;
+    font-family: "Helvetica Neue", Arial, sans-serif;
+  }}
+  .screen {{
+    background: linear-gradient(90deg,#081028,#0e243f);
+    border-radius: 8px;
+    padding: 28px;
+    text-align: center;
+    min-height: 300px;
+    position: relative;
+    overflow: hidden;
+    border: 6px solid rgba(255,255,255,0.05);
+  }}
+  .title {{ font-size: 28px; letter-spacing: 4px; margin-bottom: 10px; }}
+  .token-box {{
+    display: inline-block;
+    padding: 10px 18px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+    font-family: monospace;
+    font-size: 18px;
+    letter-spacing: 2px;
+    margin-bottom: 18px;
+  }}
+  .controls {{
+    display:flex;
+    gap:12px;
+    justify-content:center;
+    margin-top:12px;
+  }}
+  .btn {{
+    padding:8px 12px;
+    border-radius:8px;
+    cursor:pointer;
+    border:none;
+    background: rgba(255,255,255,0.06);
+    color:white;
+    font-weight:600;
+  }}
+</style>
+
+<div class="billboard">
+  <div class="screen">
+    <div class="title">TIMES SQUARE — TOKEN DISPLAY</div>
+
+    <div style="mar
+ This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+
+      # Runs a single command using the runners shell
+      - name: Run a one-line script
+        run: echo Hello, world!
+
+      # Runs a set of commands using the runners shell
+      - name: Run a multi-line script
+        run: |
+          echo Add other actions to build,
+          echo test, and deploy your project.
