@@ -1,0 +1,61 @@
+# token_gen.py
+import uuid
+import time
+import hmac
+import hashlib
+import json
+from pathlib import Path
+
+TOKENS_FILE = Path("tokens.json")
+# IMPORTANT: set HMAC_SECRET as an environment variable in CI or your local machine.
+# Do NOT hardcode secrets into your public repo.
+import os
+HMAC_SECRET = os.environ.get("HMAC_SECRET", "dev-placeholder-secret")  # replace in production
+
+def generate_token():
+    # user-visible token (UUID)
+    token_uuid = str(uuid.uuid4())
+    # timestamp
+    ts = int(time.time())
+    # create HMAC signature to detect tampering (hex)
+    sig = hmac.new(HMAC_SECRET.encode(), f"{token_uuid}:{ts}".encode(), hashlib.sha256).hexdigest()
+    # combined token (you can store or send only the uuid; keep signature server-side if needed)
+    combined = f"{token_uuid}.{ts}.{sig}"
+    return {
+        "uuid": token_uuid,
+        "timestamp": ts,
+        "signature": sig,
+        "combined": combined
+    }
+
+def save_token(record):
+    # create tokens file if not exists and append record
+    data = []
+    if TOKENS_FILE.exists():
+        data = json.loads(TOKENS_FILE.read_text())
+    data.append(record)
+    TOKENS_FILE.write_text(json.dumps(data, indent=2))
+
+def create_and_save(label="Lucifer Ian", emotion=None, metadata=None):
+    t = generate_token()
+    record = {
+        "label": label,
+        "emotion": emotion,
+        "metadata": metadata or {},
+        "uuid": t["uuid"],
+        "timestamp": t["timestamp"],
+        "signature": t["signature"]
+    }
+    save_token(record)
+    return record
+
+if __name__ == "__main__":
+    # Example usage:
+    # export HMAC_SECRET="super-secret-key"
+    # python token_gen.py "sad" '{"source":"self-report"}'
+    import sys, ast
+    emotion = sys.argv[1] if len(sys.argv) > 1 else None
+    md = ast.literal_eval(sys.argv[2]) if len(sys.argv) > 2 else {}
+    rec = create_and_save(emotion=emotion, metadata=md)
+    print("Saved token record:")
+    print(json.dumps(rec, indent=2))
